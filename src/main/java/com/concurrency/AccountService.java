@@ -1,7 +1,7 @@
 package com.concurrency;
 
+import com.concurrency.util.DistributedLock;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,26 +19,12 @@ public class AccountService {
         return account.getBalance();
     }
 
-    @Transactional
+    @DistributedLock(key = "'deposit'.concat(':').concat(#id)")
     public Long deposit(Long id, Long amount) {
-        String action = "deposit";
-        String lockName = "LOCK:" + action + ":" + id;
-        RLock lock = redissonClient.getLock(lockName);
-
-        try {
-            if (!lock.tryLock()) {
-                throw new IllegalStateException("다른 입금 요청이 처리 중입니다.");
-            }
-
-            Account account = repository.findByIdWithPessimisticLock(id)
-                    .orElseThrow();
-            account.deposit(amount);
-            return account.getBalance();
-        } finally {
-            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
+        Account account = repository.findByIdWithPessimisticLock(id)
+                .orElseThrow();
+        account.deposit(amount);
+        return account.getBalance();
     }
 
     @Transactional
