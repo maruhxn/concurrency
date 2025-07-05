@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Repository
+
 public class AccountMemoryRepository implements AccountRepository {
 
     private final ConcurrentHashMap<Long, Account> store = new ConcurrentHashMap<>();

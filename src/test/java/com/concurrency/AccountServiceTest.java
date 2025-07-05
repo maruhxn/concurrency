@@ -14,16 +14,15 @@ class AccountServiceTest {
     AccountService service;
 
     @Autowired
-    AccountRepository repository;
+    AccountJpaRepository repository;
 
     @Test
     void 잔액_조회() {
         // given
-        Long accountId = 1L;
-        repository.save(new Account(accountId, 1000L));
+        Account saved = repository.save(new Account(1000L));
 
         // when
-        Long balance = service.getBalance(accountId);
+        Long balance = service.getBalance(saved.getId());
 
         // then
         assertThat(balance).isEqualTo(1000L);
@@ -32,12 +31,11 @@ class AccountServiceTest {
     @Test
     void 입금() {
         // given
-        Long accountId = 1L;
-        repository.save(new Account(accountId, 1000L));
+        Account saved = repository.save(new Account(1000L));
 
 
         // when
-        Long balance = service.deposit(accountId, 1000L);
+        Long balance = service.deposit(saved.getId(), 1000L);
 
         // then
         assertThat(balance).isEqualTo(2000L);
@@ -46,12 +44,11 @@ class AccountServiceTest {
     @Test
     void 출금() {
         // given
-        Long accountId = 1L;
-        repository.save(new Account(accountId, 1000L));
+        Account saved = repository.save(new Account(1000L));
 
 
         // when
-        Long balance = service.withdraw(accountId, 1000L);
+        Long balance = service.withdraw(saved.getId(), 1000L);
 
         // then
         assertThat(balance).isEqualTo(0L);
@@ -60,11 +57,10 @@ class AccountServiceTest {
     @Test
     void 잔액이_출금_금액보다_적을_경우_실패해야_하며_실패() {
         // given
-        Long accountId = 1L;
-        repository.save(new Account(accountId, 100L));
+        Account saved = repository.save(new Account(100L));
 
         // when / then
-        assertThatThrownBy(() -> service.withdraw(accountId, 1000L))
+        assertThatThrownBy(() -> service.withdraw(saved.getId(), 1000L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잔액이 부족합니다.");
     }
