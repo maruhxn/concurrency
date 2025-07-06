@@ -15,12 +15,12 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
-    public Long deposit(@PathVariable Long id, @RequestBody Long amount) {
-        return accountService.deposit(id, amount);
+    public void deposit(@PathVariable Long id, @RequestBody Long amount) {
+        accountService.deposit(id, amount);
     }
 
     @PostMapping("/{id}/withdraw")
-    public Long withdraw(@PathVariable Long id, @RequestBody Long amount) {
-        return accountService.withdraw(id, amount);
+    public void withdraw(@PathVariable Long id, @RequestBody Long amount) {
+        accountService.withdraw(id, amount);
     }
 }

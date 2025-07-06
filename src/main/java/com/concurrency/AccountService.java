@@ -1,7 +1,7 @@
 package com.concurrency;
 
-import com.concurrency.util.DistributedLock;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountService {
 
     private final AccountJpaRepository repository;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional(readOnly = true)
     public Long getBalance(Long id) {
@@ -17,18 +18,12 @@ public class AccountService {
         return account.getBalance();
     }
 
-    @DistributedLock(key = "'deposit'.concat(':').concat(#id)")
-    public Long deposit(Long id, Long amount) {
-        Account account = repository.findByIdWithPessimisticLock(id)
-                .orElseThrow();
-        account.deposit(amount);
-        return account.getBalance();
+    public void deposit(Long id, Long amount) {
+        publisher.publishEvent(new AccountEvent(id, amount, AccountEvent.AccountEventType.DEPOSIT));
     }
 
     @Transactional
-    public Long withdraw(Long id, Long amount) {
-        Account account = repository.findByIdWithPessimisticLock(id).orElseThrow();
-        account.withdraw(amount);
-        return account.getBalance();
+    public void withdraw(Long id, Long amount) {
+        publisher.publishEvent(new AccountEvent(id, amount, AccountEvent.AccountEventType.WITHDRAW));
     }
 }
