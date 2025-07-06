@@ -8,9 +8,6 @@ spring:
     hibernate:
       ddl-auto: create
   datasource:
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 50
     url: jdbc:mysql://localhost:3306/my-db
     username: root
     password: 1234

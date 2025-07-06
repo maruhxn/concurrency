@@ -1,9 +1,5 @@
 package com.concurrency;
 
-import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,24 +10,24 @@ public class AccountMemoryRepository implements AccountRepository {
 
     @Override
     public Account save(Account account) {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
         store.put(account.getId(), account);
         return account;
     }
 
     @Override
     public Optional<Account> findById(Long id) {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
         Account account = store.get(id);
         return Optional.ofNullable(account);
-    }
-
-    @Override
-    public List<Account> findAll() {
-        return new ArrayList<>(store.values());
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        store.remove(id);
     }
 
     @Override

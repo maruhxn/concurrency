@@ -2,7 +2,6 @@ package com.concurrency;
 
 import com.concurrency.util.DistributedLock;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountService {
 
     private final AccountJpaRepository repository;
-    private final RedissonClient redissonClient; // RedissonClient 주입
 
     @Transactional(readOnly = true)
     public Long getBalance(Long id) {

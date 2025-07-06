@@ -149,6 +149,49 @@ public class AccountServiceConcurrencyTest {
         assertThat(saved.getBalance()).isEqualTo(expectedBalance.get());
     }
 
+    @Test
+    void 한명의_유저에게_잔고_출금_요청이_동시에_2개_이상_올_경우_차례대로_실행() throws Exception {
+        Account account = repository.save(new Account(1000L));
+        int n = 3;
+        ExecutorService es = Executors.newFixedThreadPool(n);
+        CountDownLatch readyThreadCounter = new CountDownLatch(n); // 준비 카운트
+        CountDownLatch callingThreadBlocker = new CountDownLatch(1); // 요청 카운트
+        CountDownLatch completeThreadCounter = new CountDownLatch(n); // 완료 카운트
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failedCount = new AtomicInteger(0);
+
+        Runnable task = new WaitingWorker(
+                () -> {
+                    try {
+                        service.withdraw(account.getId(), 600L);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failedCount.incrementAndGet();
+                    }
+                },
+                readyThreadCounter,
+                callingThreadBlocker,
+                completeThreadCounter
+        );
+
+        // when
+        System.out.println("n개의 작업을 스레드 풀에 제출");
+        for (int i = 0; i < n; i++) {
+            es.submit(task);
+        }
+
+        readyThreadCounter.await();
+        callingThreadBlocker.countDown();
+        completeThreadCounter.await();
+        System.out.println("모든 작업 완료");
+
+        // then
+        Account saved = repository.findById(account.getId()).get();
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failedCount.get()).isEqualTo(n - 1);
+        assertThat(saved.getBalance()).isEqualTo(400L);
+    }
 
     static class WaitingWorker implements Runnable {
 
